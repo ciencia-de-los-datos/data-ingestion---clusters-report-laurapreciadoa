@@ -11,27 +11,28 @@ espacio entre palabra y palabra.
 """
 import pandas as pd
 import re
+
 def ingest_data():
 
     with open('clusters_report.txt') as f:
-        data = [line.strip() for line in f.readlines()[4:]]
+        lines = [line.strip() for line in f.readlines()[4:]]
 
-    data_word = []
-    word = ''
-    for line in data:
+    concatenated_lines = []
+    current_line = ''
+    for line in lines:
         if line:
-            word += ' ' + line
+            current_line += ' ' + line
         else:
-            data_word.append(word.strip())
-            word = ''
+            concatenated_lines.append(current_line.strip())
+            current_line = ''
 
-    block = []
-    for i in data_word:
-        regular = re.search(r'(^[0-9]+)\W+([0-9]+)\W+([0-9]+)([!#$%&*+-.^_`|~:\[\]]+)(\d+)(\W+)(.+)', i)
-        linea = regular.group(1) + '*' + regular.group(2) + '*' + regular.group(3) + '.' + regular.group(5) + '*' + regular.group(7)
-        block.append(linea)
+    processed_data = []
+    for line in concatenated_lines:
+        match = re.search(r'(^[0-9]+)\W+([0-9]+)\W+([0-9]+)([!#$%&*+-.^_`|~:\[\]]+)(\d+)(\W+)(.+)', line)
+        result_line = match.group(1) + '*' + match.group(2) + '*' + match.group(3) + '.' + match.group(5) + '*' + match.group(7)
+        processed_data.append(result_line)
 
-    data_set = [line.split('*') for line in block]
+    data_set = [line.split('*') for line in processed_data]
     df = pd.DataFrame(data_set, columns=['cluster', 'cantidad_de_palabras_clave', 'porcentaje_de_palabras_clave', 'principales_palabras_clave'])
 
     df['cluster'] = df['cluster'].astype(int)
@@ -42,3 +43,4 @@ def ingest_data():
     df['principales_palabras_clave'] = principales_palabras_clave.apply(lambda x: ', '.join(map(str.strip, x)))
 
     return df
+
